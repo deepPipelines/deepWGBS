@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+firstFile=$1
+shift
+
+cat $firstFile <(
+    grep -hsv "^#" $@
+  )
+
