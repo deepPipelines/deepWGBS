@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+awk -vFS='\t' -vOFS='\t' '$0~/^@/ {print;next} $6!~/[MIDN]/ {$6="0M"$6} {print}'
