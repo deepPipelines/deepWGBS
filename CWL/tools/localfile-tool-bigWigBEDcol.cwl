@@ -17,16 +17,20 @@ dct:creator:
 
 
 requirements:
-  - class: DockerRequirement
-    dockerPull: "quay.io/biocontainers/ucsc-bedgraphtobigwig:357--1"
+  - class: InlineJavascriptRequirement
+  - class: InitialWorkDirRequirement
+    listing:
+      - $( inputs.scriptFolder )
 
 hints:
   - class: ResourceRequirement
     coresMin: 1
     ramMin: 4092
     outdirMin: 512000
+  - class: DockerRequirement
+    dockerPull: "quay.io/biocontainers/ucsc-bedgraphtobigwig:357--1"
 
-baseCommand: ["mergeBED"]
+baseCommand: ["bash", "scripts/mergeBED"]
 
 stdin: $( inputs.input )
 
@@ -72,3 +76,9 @@ inputs:
     doc: |
       set if the input file is compressed. Expects an 
       uncompressed file by default
+
+  scriptFolder:
+    type: Directory
+    doc: |
+      folder containing associated scripts
+
