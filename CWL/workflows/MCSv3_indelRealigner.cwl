@@ -48,7 +48,7 @@ outputs:
 steps:
 
   createTargets:
-    run: Dockerfile_BisulfiteRealignerTargetCreator.cwl
+    run: ../tools/bioconda-tool-BisSNP-BisulfiteRealignerTargetCreator.cwl
     in:
       input_file: bamFile
       intervals: region
@@ -67,7 +67,7 @@ steps:
 
 
   realign:
-    run: Dockerfile_BisulfiteIndelRealigner.cwl
+    run: ../tools/bioconda-tool-BisSNP-BisulfiteIndelRealigner.cwl
     in:
       input_file: bamFile
       intervals: region

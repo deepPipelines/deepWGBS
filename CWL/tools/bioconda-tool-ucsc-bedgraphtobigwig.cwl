@@ -15,7 +15,7 @@ dct:creator:
 
 requirements:
   - class: DockerRequirement
-    dockerPull: "quay.io/biocontainers/ucsc-bedgraphtobigwig:0.2.5"
+    dockerPull: "quay.io/biocontainers/ucsc-bedgraphtobigwig:357--1"
 
 hints:
   - class: ResourceRequirement
@@ -23,31 +23,64 @@ hints:
     ramMin: 4092
     outdirMin: 512000
 
-baseCommand
+baseCommand: [ "bedGraphToBigWig" ]
 
+outputs:
 
+  bigwigFile:
+    type: File
+    outputBinding:
+      glob: $( inputs.bigwigName )
 
+inputs:
 
+  sortedBedGraphFile:
+    type: File
+    inputBinding:
+      position: 10
+    doc: |
+      in.bedGraph is a four column file in the format:
+            <chrom> <start> <end> <value>
 
+  chromSizeFile:
+    type: File
+    inputBinding:
+      position: 15
+    doc: |
+      chrom.sizes is a two-column file/URL: <chromosome name> <size in bases>
 
+  bigwigName:
+    type: string
+    inputBinding:
+      position: 20
+    doc: |
+      out.bw is the output indexed big wig file
 
+  blockSize:
+    type: int?
+    inputBinding:
+      position: 5
+      prefix: "-blockSize="
+      separate: false
+    doc: |
+      Number of items to bundle in r-tree.  Default 256
 
+  itemsPerSlot:
+    type: int?
+    inputBinding:
+      position: 5
+      prefix: "-itemsPerSlot="
+      separate: false
+    doc: |
+      Number of data points bundled at lowest level. Default 1024
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  unc:
+    type: boolean?
+    inputBinding:
+      position: 5
+      prefix: "-unc"
+    doc: |
+      If set, do not use compression.
 
 
 doc: |
@@ -69,4 +102,3 @@ doc: |
        -blockSize=N - Number of items to bundle in r-tree.  Default 256
        -itemsPerSlot=N - Number of data points bundled at lowest level. Default 1024
        -unc - If set, do not use compression.
-

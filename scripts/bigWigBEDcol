@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+
+name="bigWigBEDcol"
+
+inputFile=""
+isZipped=0
+
+printHelp(){
+  echo -e "" >&2
+  echo -e "takes a bedfile, extracts a given column and converts it to bigwig" >&2
+  echo -e "expects a bedfile to be streamed to stdin" >&2
+  echo -e "" >&2
+  echo -e "Usage: $name <options>" >&2
+  echo -e "" >&2
+  echo -e " Mandatory options:" >&2
+  echo -e "  -s FILE\tchrom size file" >&2
+  echo -e "  -c INT\tcolumn to extract and export in the bigwig file" >&2
+  echo -e "  -o STR\toutfile name" >&2
+  echo -e "" >&2
+  echo -e " Optional options:" >&2
+  echo -e "  -i FILE\tinput BED file. By default, stdin is expected
+  echo -e "  -z     \tis gzipped" >&2
+  echo -e "" >&2
+}
+
+while getopts "s:c:o:i:zh" opt; do
+  case "$opt" in
+    s) chrSizes="$OPTARG" ;;
+    c) columnToUse="$OPTARG" ;;
+    i) inputFile="$OPTARG" ;;
+    o) outFileName="$OPTARG" ;;
+    z) isZipped=1
+    h) printHelp; exit 0 ;;
+    *) printHelp; exit 1 ;;
+  esac
+done
+
+if [[ -z "$chrSizes" ]] || [[ -z "$columnToUse" ]] || [[ -z "$outFileName" ]]; then
+  echo -e "ERROR $(date) ($name): All mandatory options must be set" >&2
+  printHelp
+  exit 1
+fi
+
+if [[ "$isZipped" ]]; then
+  zcat $inputFile
+else
+  cat $inputFile
+fi \
+  | grep -v "^#" \
+  | cut -f 1-3,$columnToUse \
+> ${outFileName}.tmp
+
+bedGraphToBigWig ${outFileName}.tmp $chrSizes $outFileName
+
+rm ${outFileName}.tmp

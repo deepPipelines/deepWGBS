@@ -43,6 +43,9 @@ outputs:
   cpgvcf:
     type: File
     outputSource: VCFpostprocessCpG/new_vcf_output
+  calibratedBam:
+    type: File
+    outputSource: recalibrate/out_output
   cpgbed:
     type: File
     outputSource: convertToBed/CpGbed
@@ -68,7 +71,7 @@ outputs:
 steps:
 
   recalibrate:
-    run: Dockerfile_BisulfiteTableRecalibration.cwl
+    run: ../tools/bioconda-tool-BisSNP-BisulfiteTableRecalibration.cwl
     in:
       reference_sequence: reference
       input_file: inputBam
@@ -85,7 +88,7 @@ steps:
       - log_to_file_output
 
   methylation_call:
-    run: Dockerfile_BisulfiteGenotyper.cwl
+    run: ../tools/bioconda-tool-BisSNP-BisulfiteGenotyper.cwl
     in:
       reference_sequence: reference
       input_file: recalibrate/out_output
@@ -113,7 +116,7 @@ steps:
       - vcf_file_name_2_output
 
   sortSNP:
-    run: Dockerfile_sortByRefAndCor.cwl
+    run: ../tools/bioconda-tool-BisSNPutils-sortByRefAndCor.cwl
     in:
       input: methylation_call/vcf_file_name_1_output
       ref_dict:
@@ -128,7 +131,7 @@ steps:
       - sortedVcf
 
   sortCpG:
-    run: Dockerfile_sortByRefAndCor.cwl
+    run: ../tools/bioconda-tool-BisSNPutils-sortByRefAndCor.cwl
     in:
       input: methylation_call/vcf_file_name_2_output
       ref_dict:
@@ -143,7 +146,7 @@ steps:
       - sortedVcf
 
   VCFpostprocessSNP:
-    run: Dockerfile_VCFpostprocess.cwl
+    run: ../tools/bioconda-tool-BisSNPutils-VCFpostprocess.cwl
     in:
       reference_sequence: reference
       new_vcf:
@@ -160,7 +163,7 @@ steps:
       - log_to_file_output
 
   VCFpostprocessCpG:
-    run: Dockerfile_VCFpostprocess.cwl
+    run: ../tools/bioconda-tool-BisSNPutils-VCFpostprocess.cwl
     in:
       reference_sequence: reference
       new_vcf:
@@ -177,7 +180,7 @@ steps:
       - log_to_file_output
 
   convertToBed:
-    run: Dockerfile_vcf2bed.NOME.cwl
+    run: ../tools/bioconda-tool-BisSNPutils-vcf2bed.NOME.cwl
     in:
       input: VCFpostprocessCpG/new_vcf_output
       context:
