@@ -17,14 +17,15 @@ dct:creator:
 
 
 requirements:
-  - class: DockerRequirement
-    dockerPull: "quay.io/biocontainers/tabix:0.2.5"
+  - class: InlineJavaScriptRequirement
 
 hints:
   - class: ResourceRequirement
     coresMin: 1
     ramMin: 4092
     outdirMin: 512000
+  - class: DockerRequirement
+    dockerPull: "quay.io/biocontainers/tabix:0.2.5"
 
 baseCommand: ["bgzip", "-c"]
 

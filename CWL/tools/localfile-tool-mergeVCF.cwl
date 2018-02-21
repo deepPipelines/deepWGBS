@@ -17,16 +17,20 @@ dct:creator:
 
 
 requirements:
-  - class: DockerRequirement
-    dockerPull: "quay.io/biocontainers/YAP_MCSv3:0.0.1"
+  - class: InlineJavascriptRequirement
+  - class: InitialWorkDirRequirement
+    listing:
+      - $( inputs.scriptFolder )
 
 hints:
   - class: ResourceRequirement
     coresMin: 1
     ramMin: 4092
     outdirMin: 512000
+  - class: DockerRequirement
+    dockerPull: "quay.io/biocontainers/bis-snp-utils:0.0.1--pl5.22.0_0"
 
-baseCommand: ["mergeVCF"]
+baseCommand: ["bash", "scripts/mergeVCF"]
 
 stdout: $( inputs.output_name )
 
@@ -49,4 +53,9 @@ inputs:
     type: string
     doc: |
       Name of output file
+
+  scriptFolder:
+    type: Directory
+    doc: |
+      folder containing associated scripts
 

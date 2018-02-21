@@ -19,14 +19,14 @@ dct:creator:
 
 requirements:
   - class: InlineJavascriptRequirement
-  - class: DockerRequirement
-    dockerPull: "quay.io/karl616/dockstore-tool-bissnp:0.82.2"
 
 hints:
   - class: ResourceRequirement
     coresMin: 1
     ramMin: 4092
     outdirMin: 512000
+  - class: DockerRequirement
+    dockerPull: "quay.io/karl616/dockstore-tool-bissnp:0.82.2"
 
 baseCommand: ["-T", "VCFpostprocess"]
 

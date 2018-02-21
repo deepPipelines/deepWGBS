@@ -16,14 +16,14 @@ dct:creator:
 requirements:
   - class: InitialWorkDirRequirement
     listing: input
-  - class: DockerRequirement
-    dockerPull: "quay.io/biocontainers/tabix:0.2.5"
 
 hints:
   - class: ResourceRequirement
     coresMin: 1
     ramMin: 4092
     outdirMin: 512000
+  - class: DockerRequirement
+    dockerPull: "quay.io/biocontainers/tabix:0.2.5"
 
 doc: |
   indexing of block compressed file

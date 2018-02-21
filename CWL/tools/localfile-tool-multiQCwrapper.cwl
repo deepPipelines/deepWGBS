@@ -17,16 +17,20 @@ dct:creator:
 
 
 requirements:
-  - class: DockerRequirement
-    dockerPull: "quay.io/biocontainers/multiqc:1.5a--py36_0"
+  - class: InlineJavascriptRequirement
+  - class: InitialWorkDirRequirement
+    listing:
+      - $( inputs.scriptFolder )
 
 hints:
   - class: ResourceRequirement
     coresMin: 1
     ramMin: 4092
     outdirMin: 512000
+  - class: DockerRequirement
+    dockerPull: "quay.io/biocontainers/multiqc:1.5a--py36_0"
 
-baseCommand: ["multiQCwrapper"]
+baseCommand: ["bash", "scripts/multiQCwrapper"]
 
 
 
@@ -64,3 +68,9 @@ inputs:
       prefix: -o
     doc: |
       output prefix
+
+  scriptFolder:
+    type: Directory
+    doc: |
+      folder containing associated scripts
+
