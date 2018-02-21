@@ -18,14 +18,14 @@ dct:creator:
 
 requirements:
   - class: InlineJavascriptRequirement
-  - class: DockerRequirement
-    dockerPull: "quay.io/biocontainers/samtools:1.3.1--5"
 
 hints:
   - class: ResourceRequirement
     coresMin: 1
     ramMin: 4092
     outdirMin: 512000
+  - class: DockerRequirement
+    dockerPull: "quay.io/biocontainers/samtools:1.3.1--5"
 
 baseCommand: ["samtools", "view"]
 
