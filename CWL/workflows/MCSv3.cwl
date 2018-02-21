@@ -59,11 +59,54 @@ inputs:
       type: array
       items: string
 
+  scriptFolder:
+    type: Directory
+
 outputs:
 
-steps:
+  cpgbedFile:
+    type: File
+    secondaryFiles:
+      - ".tbi"
+    outputSource: indexBED/indexedFile
 
-samtools view -F260 -u -b $LOCALINPUTFILE
+  coverageBigwig:
+    type: File
+    outputSource: createCoverageBigwig/bigwigFile
+
+  methBigwig:
+    type: File
+    outputSource: createMethBigWig/bigwigFile
+
+  cpgVCFfile:
+    type: File
+    secondaryFiles:
+      - ".tbi"
+    outputSource: indexVCFcpg/indexedFile
+
+  snpVCFfile:
+    type: File
+    secondaryFiles:
+      - ".tbi"
+    outputSource: indexVCFsnp/indexedFile
+
+  recalibratedBam:
+    type: File
+    secondaryFiles:
+      - ".bai"
+    outputSource: indexBam/indexedBam
+
+  logFiles:
+    type: Directory
+    outputSource: multiQCreport/logFolder
+
+  multiQC:
+    type: File
+    secondaryFiles:
+      - "^_data"
+    outputSource: multiQCreport/multiQCreport
+
+steps:
 
   removeUnmapped:
     run: ../tools/bioconda-tool-samtools-view.cwl
@@ -179,17 +222,157 @@ samtools view -F260 -u -b $LOCALINPUTFILE
       region: regions
       outPrefix: regionPrefixes
     out:
+      - snpvcf
+      - cpgvcf
+      - calibratedBam
+      - cpgbed
+      - summary_VCFpostprocessSNP
+      - summary_VCFpostprocessCpG
+      - log_recalibrate
+      - log_methylation_call
+      - log_VCFpostprocessSNP
+      - log_VCFpostprocessCpG
 
-  mergeFiles:
+  mergeBam:
+    run: ../tools/bioconda-tool-picard-MergeSamFiles.cwl
+    in:
+      VALIDATION_STRINGENCY:
+        valueFrom: "LENIENT"
+      INPUT: recalibrate_call/calibratedBam
+      OUTPUT:
+        valueFrom: $( outPrefix + ".recal.bam" )
+    out:
+      - OUTPUT_output
+
+  indexBam:
+    run: ../tools/bioconda-tool-samtools-index.cwl
+    in:
+      input: mergeBam/OUTPUT_output
+    out:
+      - indexedBam
+
+  mergeVCFcpg:
+    run: ../tools/localfile-tool-mergeVCF.cwl
+    in:
+      input: recalibrate_call/cpgvcf
+      output_name:
+        valueFrom: $( outPrefix + ".filtered.cpg.vcf"
+      scriptFolder: scriptFolder
+    out:
+      - mergedVCF
+    
+  indexVCFcpg:
+    run: compressIndexTabix.cwl
+    in:
+      input: mergeVCFcpg/mergedVCF
+      filetype:
+        valueFrom: "vcf"
+    out:
+      - indexedFile
+
+  mergeVCFsnp:
+    run: ../tools/localfile-tool-mergeVCF.cwl
+    in:
+      input: recalibrate_call/snpvcf
+      output_name:
+        valueFrom: $( outPrefix + ".filtered.snp.vcf"
+      scriptFolder: scriptFolder
+    out:
+      - mergedVCF
+
+  indexVCFsnp:
+    run: compressIndexTabix.cwl
+    in:
+      input: mergeVCFsnp/mergedVCF
+      filetype:
+        valueFrom: "vcf"
+    out:
+      - indexedFile
+
+  mergeBED:
+    run: ../tools/localfile-tool-mergeBED.cwl
+    in:
+      input: recalibrate_call/cpgbed
+      sample_name: outPrefix
+      output_name:
+        valueFrom: $( outPrefix + ".filtered.CG.bed" )
+      scriptFolder: scriptFolder
+    out:
+      - mergedBED
+
+  indexBED:
+    run: compressIndexTabix.cwl
+    in:
+      input: mergeBED/mergedBED
+      filetype:
+        valueFrom: "bed"
+    out:
+      - indexedFile
+
+  createCoverageBigwig:
+    run: ../tools/localfile-tool-bigWigBEDcol.cwl
+    in:
+      input: mergeBED/mergedBED
+      chromSizeFile: reference_lengths
+      columnToUse:
+        valueFrom: 5
+      output_name:
+        valueFrom: $( outPrefix + ".filtered.CG.ct_coverage.bw" )
+      scriptFolder: scriptFolder
+    out:
+      - bigwigFile
+
+  createMethBigWig:
+    run: ../tools/localfile-tool-bigWigBEDcol.cwl
+    in:
+      input: mergeBED/mergedBED
+      chromSizeFile: reference_lengths
+      columnToUse:
+        valueFrom: 4
+      output_name:
+        valueFrom: $( outPrefix + ".filtered.CG.bw" )
+      scriptFolder: scriptFolder
+    out:
+      - bigwigFile
+
+  bamQC:
     run:
     in:
 
     out:
 
-  calculateQC:
+  bedQC:
     run:
     in:
 
     out:
+
+  vcfQC:
+    run:
+    in:
+
+    out:
+
+  
+
+  multiQCreport:
+    run: ../tools/localfile-tool-multiQCwrapper.cwl
+    in:
+      input:
+        valueFrom: $(
+            realign.log_createTarget.concat(
+              realign.log_realign).concat(
+              recalibrate_countCovariates.log_to_file_output).concat(
+              recalibrate_call.log_recalibrate).concat(
+              recalibrate_call.log_methylation_call).concat(
+              recalibrate_call.log_VCFpostprocessSNP).concat(
+              recalibrate_call.log_VCFpostprocessCpG)
+          )
+      outputPrefix: outPrefix
+    out:
+      - logFolder
+      - multiQCreport
+
+
 
 
