@@ -20,7 +20,7 @@ dct:creator:
 requirements:
   - class: InlineJavascriptRequirement
   - class: DockerRequirement
-    dockerPull: "quay.io/biocontainers/bis-snp-utils:0.0.1"
+    dockerPull: "quay.io/biocontainers/bis-snp-utils:0.0.1--pl5.22.0_0"
 
 hints:
   - class: ResourceRequirement
