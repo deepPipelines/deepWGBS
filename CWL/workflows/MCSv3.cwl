@@ -10,6 +10,7 @@ dct:creator:
 
 requirements:
   - class: ScatterFeatureRequirement
+  - class: SubworkflowFeatureRequirement
   
 
 inputs:
@@ -65,19 +66,19 @@ steps:
 samtools view -F260 -u -b $LOCALINPUTFILE
 
   removeUnmapped:
-    run: dockstore-tool-samtools-view.cwl
+    run: ../tools/bioconda-tool-samtools-view.cwl
     in:
-      isbam:
+      outbam:
         valueFrom: $( true )
-      uncompressed:
+      useNoCompression:
         valueFrom: $( true )
-      readswithoutbits:
+      selectFLAGnone:
         valueFrom: $( 260 )
       input: inputfile
-      output_name:
+      outputFileName:
         valueFrom: $( outPrefix + "onlyPrimary.bam" )
     out:
-      - outputs
+      - bamFile
 
   realign:
     run: MCSv3_indelRealigner.cwl
@@ -95,7 +96,7 @@ samtools view -F260 -u -b $LOCALINPUTFILE
       - log_realign
 
   mergeSam:
-    run: Dockerfile_MergeSamFiles.cwl
+    run: ../tools/bioconda-tool-picard-_MergeSamFiles.cwl
     in:
       INPUT: realign/realignedBam
       VALIDATION_STRINGENCY:
@@ -108,7 +109,7 @@ samtools view -F260 -u -b $LOCALINPUTFILE
       - OUTPUT_output
 
   clipOverlap:
-    run: Dockerfile_bamUtils.cwl
+    run: ../tools/bioconda-tool-bamutils-clipOverlap.cwl
     in:
       in: mergeSam/OUTPUT_output
       out: 
@@ -119,7 +120,7 @@ samtools view -F260 -u -b $LOCALINPUTFILE
       - out_output
 
   clipOverlap_correction:
-    run:
+    run: ../tools/localfile-tool-clipOverlapCorrection.cwl
     in:
       input: clipOverlap/out_output
       output_name: $( outPrefix + ".clipOverlap.corrected.sam"
@@ -127,27 +128,27 @@ samtools view -F260 -u -b $LOCALINPUTFILE
       - correctedSam
 
   clipOverlap_toBam:
-    run: dockstore-tool-samtools-view.cwl
+    run: ../tools/bioconda-tool-samtools-view.cwl
     in:
-      isbam:
+      outBam:
         valueFrom: $( true )
-      uncompressed:
+      useNoCompression:
         valueFrom: $( true )
       input: clipOverlap_correction/output
-      output_name:
+      outputFileName:
         valueFrom: $( outPrefix + ".clipOverlap.clean.bam" )
     out:
       - outputs
 
   clipOverlap_index:
-    run: Dockerfile_samtools-index.cwl
+    run: ../tools/bioconda-samtools-index.cwl
     in:
       input: clipOverlap_toBam/outputs
     out:
       - indexedBam
   
   recalibrate_countCovariates:
-    run: Dockerfile_BisulfiteCountCovariates.cwl
+    run: ../tools/bioconda-tool-BisSNP-BisulfiteCountCovariates.cwl
     in:
       reference_sequence: reference
       input_file: clipOverlap_index/indexedBam

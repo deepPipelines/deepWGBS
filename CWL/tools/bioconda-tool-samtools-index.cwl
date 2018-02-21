@@ -21,7 +21,7 @@ requirements:
   - class: InitialWorkDirRequirement
     listing: input
   - class: DockerRequirement
-    dockerPull: "quay.io/biocontainers/samtools:1.3"
+    dockerPull: "quay.io/biocontainers/samtools:1.3.1--5"
 
 hints:
   - class: ResourceRequirement
