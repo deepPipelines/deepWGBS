@@ -7,20 +7,22 @@ printHelp() {
  echo -e "" >&2
  echo -e " Mandatory:" >&2
  echo -e "  -i INPUTFILE\tInput BAM file" >&2
-  echo -e "  -p FILE\tParameterfile" >&2
+ echo -e "  -p FILE\tParameterfile" >&2
+ echo -e "  -o STRING\tOutput name">&2
 }
 
-while getopts ":h:i:p:" opt
+while getopts ":h:i:p:o:" opt
 do
  case "$opt" in
   h) printHelp; exit 1 ;;
   i) LOCALINPUTFILE="$OPTARG" ;;
   p) PARAMETERFILE="$OPTARG" ;;
+  o) output_name="$OPTARG";;
   *) printHelp; exit 1 ;;
  esac
 done
 
-if [[ -z "$LOCALINPUTFILE" ]] || [[ -z "$PARAMETERFILE" ]]
+if [[ -z "$LOCALINPUTFILE" ]] || [[ -z "$PARAMETERFILE" ]]||[[ -z "$output_name"]]
 then 
  echo "" >&2
  echo "ERROR: All arguments must be set" >&2
@@ -46,10 +48,9 @@ printf "${rs}"
 
 printf "wgbs_parameter_file${fs}%s" "$PARAMETERFILE"
 printf "${rs}sample_id${fs}%s" "${WGBS_INTERNAL_ID}"
-#printf "${rs}wgbs_log_file${fs}%s" `ls $LOGFOLDER |while read s; do echo $LOGFOLDER/$s; done|tr '\n' ',' |sed s/,$//`
 printf "${rs}wgbs_out_postprocessed_bam_file${fs}%s" "$LOCALINPUTFILE"
 printf "${rs}conversion_rate${fs}%s" ""
-printf "${rs}" >>
+printf "${rs}"
 
 samtools view -u -F1280 $LOCALINPUTFILE | samtools mpileup -d 100000 - |awk -vOFS=$fs -vORS=$rs '{c+=1; a+= ($4-a)/c} END{printf "%savg_genome_cov%s%s" ,ORS,OFS,a}' 
 printf "${rs}"

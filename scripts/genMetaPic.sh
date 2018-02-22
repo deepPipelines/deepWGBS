@@ -6,23 +6,25 @@ printHelp() {
  echo -e "Usage: `basename $0`" >&2
  echo -e "" >&2
  echo -e " Mandatory:" >&2
- echo -e "  -p FILE\tParameterfile" >&2
+ echo -e "  -n FILE\tInputfile" >&2
  echo -e "  -d FILE\tPicarddupmetrics file">&2
  echo -e "  -f FILE\tFlagstats file">&2
+ echo -e "  -o STRING\tOutput name">&2
 }
 
-while getopts ":h:p:d:f:" opt
+while getopts ":h:p:d:f:o:" opt
 do
  case "$opt" in
   h) printHelp; exit 1 ;;
-  p) PARAMETERFILE="$OPTARG" ;;
+  n) INPUTFILE="$OPTARG" ;;
   d) INPUTFILE_PICARDDUPMETRICS="$OPTARG";;
   f) INPUTFILE_FLAGSTATS="$OPTARG";;
+  o) output_name="$OPTARG";;
   *) printHelp; exit 1 ;;
  esac
 done
 
-if [[ -z "$PARAMETERFILE" ]]||[[ -z "$INPUTFILE_PICARDDUPMETRICS"]]||[[ -z "$INPUTFILE_FLAGSTATS"]]
+if [[ -z "$INPUTFILE" ]]||[[ -z "$INPUTFILE_PICARDDUPMETRICS"]]||[[ -z "$INPUTFILE_FLAGSTATS"]]||[[ -z "$output_name"]]
 then 
  echo "" >&2
  echo "ERROR: All arguments must be set" >&2
@@ -31,7 +33,6 @@ then
  exit 1
 fi
 
-source $PARAMETERFILE
 set -o pipefail
 
 rs='\n'
@@ -44,13 +45,9 @@ echo "LOGG ($name): `date` START" >&2
 
 printf "${rs}filename${fs}%s,%s,%s" "$INPUTFILE" "${INPUTFILE_PICARDDUPMETRICS}" "${INPUTFILE_FLAGSTATS}"
 
-if [[ -f "${INPUTFILE_PICARDDUPMETRICS}" ]]
+if [[ -f "$(INPUT_PICARDDUPMETRICS)"]]
 then
 awk -vOFS=$fs -vORS=$rs '$2=="METRICS" {state=1;next} state==1 {colNr=NF;state=2;next} state==2 && (NF==colNr || NF==colNr-1) {curRead=$2+2*$3;totRead+=curRead;dupRead+=$5+2*$6}  END {printf "%sduplication_rate%s%s",ORS,OFS,dupRead/totRead}' ${INPUTFILE_PICARDDUPMETRICS}
-exitSum=$(( $exitSum + $? ))
-elif [ "$MARKDUP" == "T" ]
-then
-awk -vOFS=$fs -vORS=$rs '$2=="METRICS" {state=1;next} state==1 {colNr=NF;state=2;next} state==2 && (NF==colNr || NF==colNr-1) {curRead=$2+2*$3;totRead+=curRead;dupRead+=$5+2*$6}  END {printf "%sduplication_rate%s%s",ORS,OFS,dupRead/totRead}' out.markduplicate.metrics.csv
 exitSum=$(( $exitSum + $? ))
 fi
 

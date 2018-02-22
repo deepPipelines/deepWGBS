@@ -9,20 +9,22 @@ printHelp() {
  echo -e " -r FILE\tReference file">&2
  echo -e " -s FILE\tSNP vcf file">&2
  echo -e " -c FILE\tCPG vcf file">&2
+ echo -e " -o STRING\tOutput name">&2
 }
 
-while getopts ":h:r:s:g:" opt
+while getopts ":h:r:s:g:o:" opt
 do
  case "$opt" in
   h) printHelp; exit 1 ;;
   r) REFERENCE="$OPTARG";;
   s) SNP="$OPTARG";;
   g) CPG="$OPTARG";;
+  o) output_name="$OPTARG";;
   *) printHelp; exit 1 ;;
  esac
 done
 
-if [[ -z "$REFERENCE"]]||[[ -z "$SNP"]]||[[ -z "$CPG"]]
+if [[ -z "$REFERENCE"]]||[[ -z "$SNP"]]||[[ -z "$CPG"]]||[[ -z "$output_name"]]
 then 
  echo "" >&2
  echo "ERROR: All arguments must be set" >&2
@@ -42,7 +44,7 @@ printf "${rs}wgbs_out_filtered_cytocines_vcf_file${fs}%s" "$CPG"
 printf "${rs}num_SNPs${fs}%s" `zcat $SNP | grep -v "^#" |cut -f 1,2|sort -u |wc -l`
 exitSum=$(( $exitSum + $? ))
 
-zcat $CPG | java -Xmx12G -jar $JARS/fastaUtils.jar cContext ${REFERENCE} - CG,1 CA,1 CC,1 CT,1 CH,1 CAG,1 CHH,1 CHG,1 GC,2 GCH,2 GCG,2 HCG,2 HCH,2 HCA,2 HCC,2 HCT,2 |awk -vOFS=$fs -vORS=$rs 'NR>1 {printf "%smean_meth_%s%s%s",ORS,tolower($1),OFS,$3+0}'
+zcat $CPG | java -Xmx12G -jar /scripts/fastaUtils.jar cContext ${REFERENCE} - CG,1 CA,1 CC,1 CT,1 CH,1 CAG,1 CHH,1 CHG,1 GC,2 GCH,2 GCG,2 HCG,2 HCH,2 HCA,2 HCC,2 HCT,2 |awk -vOFS=$fs -vORS=$rs 'NR>1 {printf "%smean_meth_%s%s%s",ORS,tolower($1),OFS,$3+0}'
 exitSum=$(( $exitSum + $? ))
 
 printf "${rs}"
