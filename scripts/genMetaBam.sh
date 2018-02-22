@@ -44,6 +44,7 @@ echo "LOGG ($name): `date` START" >&2
 printf "wgbs_analysis_run"
 awk -vFS='[ =]' '/^#ExcludeFromAnalysisFile/ {exit} /^export/ {print $2}' $PARAMETERFILE|while read s ; do printf "${rs}$s${fs}${!s}"; done
 exitSum=$(( $exitSum + $? ))
+
 printf "${rs}"
 
 printf "wgbs_parameter_file${fs}%s" "$PARAMETERFILE"

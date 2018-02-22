@@ -40,7 +40,6 @@ fs='\t'
 
 exitSum=0
 
-
 echo "LOGG ($name): `date` START" >&2
 
 printf "${rs}filename${fs}%s,%s,%s" "$INPUTFILE" "${INPUTFILE_PICARDDUPMETRICS}" "${INPUTFILE_FLAGSTATS}"

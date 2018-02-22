@@ -33,7 +33,6 @@ fi
 
 set -o pipefail
 
-
 rs='\n'
 fs='\t'
 
