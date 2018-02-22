@@ -10,6 +10,8 @@ outputs:
 
   indexedFile:
     type: File
+    secondaryFiles:
+      - ".tbi"
     outputSource: index/indexedFile
 
 inputs:
@@ -30,7 +32,7 @@ inputs:
 
 steps:
   compress:
-    run: bioconda-tool-bgzip.cwl
+    run: ../tools/bioconda-tool-bgzip.cwl
     in:
       input: input
       output_name: outputName
@@ -38,7 +40,7 @@ steps:
       - bgzippedFile
 
   index:
-    run: bioconda-tool-tabix.cwl
+    run: ../tools/bioconda-tool-tabix.cwl
     in:
       input: compress/bgzippedFile
       preset: filetype

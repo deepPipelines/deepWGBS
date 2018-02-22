@@ -2,13 +2,13 @@
 
 class: CommandLineTool
 
-id: "YAP_MCSv3_mergeVCF"
-label: "YAP MCSv3 mergeVCF"
+id: "YAP_MCSv3_multiQCwrapper"
+label: "YAP MCSv3 multiQCwrapper"
 
 cwlVersion: "v1.0"
 
 doc: |
-    Merges VCF files by removing headers from all but the first file and concatenating.
+    combines all log files
 
 dct:creator:
   "@id": "https://orcid.org/0000-0001-6231-4417"
@@ -28,15 +28,25 @@ hints:
     ramMin: 4092
     outdirMin: 512000
   - class: DockerRequirement
-    dockerPull: "quay.io/biocontainers/bis-snp-utils:0.0.1--pl5.22.0_0"
+    dockerPull: "quay.io/biocontainers/multiqc:1.5a--py36_0"
 
-baseCommand: ["bash", "scripts/mergeVCF"]
+baseCommand: ["bash", "scripts/multiQCwrapper"]
 
-stdout: $( inputs.output_name )
+
 
 outputs:
-  mergedVCF:
-    type: stdout
+
+  logFolder:
+    type: Directory
+    outputBinding:
+      glob: $( inputs.outputPrefix + "_logfiles" )
+
+  multiQCreport:
+    type: File
+    secondaryFiles:
+      - "^_data"
+    outputBinding:
+      glob: $( inputs.outputPrefix + ".html" )
 
 inputs:
 
@@ -44,15 +54,20 @@ inputs:
     type:
       type: array
       items: File
+      inputBinding:
+        prefix: -i
     inputBinding:
       position: 5
     doc: |
-      The file to be adjusted.
+      inputlog file (can be given multiple times)
 
-  output_name:
+  outputPrefix:
     type: string
+    inputBinding:
+      position: 5
+      prefix: -o
     doc: |
-      Name of output file
+      output prefix
 
   scriptFolder:
     type: Directory

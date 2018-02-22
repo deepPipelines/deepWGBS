@@ -10,6 +10,7 @@ dct:creator:
 
 requirements:
   - class: ScatterFeatureRequirement
+  - class: SubworkflowFeatureRequirement
   
 
 inputs:
@@ -58,26 +59,69 @@ inputs:
       type: array
       items: string
 
+  scriptFolder:
+    type: Directory
+
 outputs:
+
+  cpgbedFile:
+    type: File
+    secondaryFiles:
+      - ".tbi"
+    outputSource: indexBED/indexedFile
+
+  coverageBigwig:
+    type: File
+    outputSource: createCoverageBigwig/bigwigFile
+
+  methBigwig:
+    type: File
+    outputSource: createMethBigWig/bigwigFile
+
+  cpgVCFfile:
+    type: File
+    secondaryFiles:
+      - ".tbi"
+    outputSource: indexVCFcpg/indexedFile
+
+  snpVCFfile:
+    type: File
+    secondaryFiles:
+      - ".tbi"
+    outputSource: indexVCFsnp/indexedFile
+
+  recalibratedBam:
+    type: File
+    secondaryFiles:
+      - ".bai"
+    outputSource: indexBam/indexedBam
+
+  logFiles:
+    type: Directory
+    outputSource: multiQCreport/logFolder
+
+  multiQC:
+    type: File
+    secondaryFiles:
+      - "^_data"
+    outputSource: multiQCreport/multiQCreport
 
 steps:
 
-samtools view -F260 -u -b $LOCALINPUTFILE
-
   removeUnmapped:
-    run: dockstore-tool-samtools-view.cwl
+    run: ../tools/bioconda-tool-samtools-view.cwl
     in:
-      isbam:
+      outbam:
         valueFrom: $( true )
-      uncompressed:
+      useNoCompression:
         valueFrom: $( true )
-      readswithoutbits:
+      selectFLAGnone:
         valueFrom: $( 260 )
       input: inputfile
-      output_name:
+      outputFileName:
         valueFrom: $( outPrefix + "onlyPrimary.bam" )
     out:
-      - outputs
+      - bamFile
 
   realign:
     run: MCSv3_indelRealigner.cwl
@@ -95,7 +139,7 @@ samtools view -F260 -u -b $LOCALINPUTFILE
       - log_realign
 
   mergeSam:
-    run: Dockerfile_MergeSamFiles.cwl
+    run: ../tools/bioconda-tool-picard-_MergeSamFiles.cwl
     in:
       INPUT: realign/realignedBam
       VALIDATION_STRINGENCY:
@@ -108,7 +152,7 @@ samtools view -F260 -u -b $LOCALINPUTFILE
       - OUTPUT_output
 
   clipOverlap:
-    run: Dockerfile_bamUtils.cwl
+    run: ../tools/bioconda-tool-bamutils-clipOverlap.cwl
     in:
       in: mergeSam/OUTPUT_output
       out: 
@@ -119,7 +163,7 @@ samtools view -F260 -u -b $LOCALINPUTFILE
       - out_output
 
   clipOverlap_correction:
-    run:
+    run: ../tools/localfile-tool-clipOverlapCorrection.cwl
     in:
       input: clipOverlap/out_output
       output_name: $( outPrefix + ".clipOverlap.corrected.sam"
@@ -127,27 +171,27 @@ samtools view -F260 -u -b $LOCALINPUTFILE
       - correctedSam
 
   clipOverlap_toBam:
-    run: dockstore-tool-samtools-view.cwl
+    run: ../tools/bioconda-tool-samtools-view.cwl
     in:
-      isbam:
+      outBam:
         valueFrom: $( true )
-      uncompressed:
+      useNoCompression:
         valueFrom: $( true )
       input: clipOverlap_correction/output
-      output_name:
+      outputFileName:
         valueFrom: $( outPrefix + ".clipOverlap.clean.bam" )
     out:
       - outputs
 
   clipOverlap_index:
-    run: Dockerfile_samtools-index.cwl
+    run: ../tools/bioconda-samtools-index.cwl
     in:
       input: clipOverlap_toBam/outputs
     out:
       - indexedBam
   
   recalibrate_countCovariates:
-    run: Dockerfile_BisulfiteCountCovariates.cwl
+    run: ../tools/bioconda-tool-BisSNP-BisulfiteCountCovariates.cwl
     in:
       reference_sequence: reference
       input_file: clipOverlap_index/indexedBam
@@ -178,17 +222,157 @@ samtools view -F260 -u -b $LOCALINPUTFILE
       region: regions
       outPrefix: regionPrefixes
     out:
+      - snpvcf
+      - cpgvcf
+      - calibratedBam
+      - cpgbed
+      - summary_VCFpostprocessSNP
+      - summary_VCFpostprocessCpG
+      - log_recalibrate
+      - log_methylation_call
+      - log_VCFpostprocessSNP
+      - log_VCFpostprocessCpG
 
-  mergeFiles:
+  mergeBam:
+    run: ../tools/bioconda-tool-picard-MergeSamFiles.cwl
+    in:
+      VALIDATION_STRINGENCY:
+        valueFrom: "LENIENT"
+      INPUT: recalibrate_call/calibratedBam
+      OUTPUT:
+        valueFrom: $( outPrefix + ".recal.bam" )
+    out:
+      - OUTPUT_output
+
+  indexBam:
+    run: ../tools/bioconda-tool-samtools-index.cwl
+    in:
+      input: mergeBam/OUTPUT_output
+    out:
+      - indexedBam
+
+  mergeVCFcpg:
+    run: ../tools/localfile-tool-mergeVCF.cwl
+    in:
+      input: recalibrate_call/cpgvcf
+      output_name:
+        valueFrom: $( outPrefix + ".filtered.cpg.vcf"
+      scriptFolder: scriptFolder
+    out:
+      - mergedVCF
+    
+  indexVCFcpg:
+    run: compressIndexTabix.cwl
+    in:
+      input: mergeVCFcpg/mergedVCF
+      filetype:
+        valueFrom: "vcf"
+    out:
+      - indexedFile
+
+  mergeVCFsnp:
+    run: ../tools/localfile-tool-mergeVCF.cwl
+    in:
+      input: recalibrate_call/snpvcf
+      output_name:
+        valueFrom: $( outPrefix + ".filtered.snp.vcf"
+      scriptFolder: scriptFolder
+    out:
+      - mergedVCF
+
+  indexVCFsnp:
+    run: compressIndexTabix.cwl
+    in:
+      input: mergeVCFsnp/mergedVCF
+      filetype:
+        valueFrom: "vcf"
+    out:
+      - indexedFile
+
+  mergeBED:
+    run: ../tools/localfile-tool-mergeBED.cwl
+    in:
+      input: recalibrate_call/cpgbed
+      sample_name: outPrefix
+      output_name:
+        valueFrom: $( outPrefix + ".filtered.CG.bed" )
+      scriptFolder: scriptFolder
+    out:
+      - mergedBED
+
+  indexBED:
+    run: compressIndexTabix.cwl
+    in:
+      input: mergeBED/mergedBED
+      filetype:
+        valueFrom: "bed"
+    out:
+      - indexedFile
+
+  createCoverageBigwig:
+    run: ../tools/localfile-tool-bigWigBEDcol.cwl
+    in:
+      input: mergeBED/mergedBED
+      chromSizeFile: reference_lengths
+      columnToUse:
+        valueFrom: 5
+      output_name:
+        valueFrom: $( outPrefix + ".filtered.CG.ct_coverage.bw" )
+      scriptFolder: scriptFolder
+    out:
+      - bigwigFile
+
+  createMethBigWig:
+    run: ../tools/localfile-tool-bigWigBEDcol.cwl
+    in:
+      input: mergeBED/mergedBED
+      chromSizeFile: reference_lengths
+      columnToUse:
+        valueFrom: 4
+      output_name:
+        valueFrom: $( outPrefix + ".filtered.CG.bw" )
+      scriptFolder: scriptFolder
+    out:
+      - bigwigFile
+
+  bamQC:
     run:
     in:
 
     out:
 
-  calculateQC:
+  bedQC:
     run:
     in:
 
     out:
+
+  vcfQC:
+    run:
+    in:
+
+    out:
+
+  
+
+  multiQCreport:
+    run: ../tools/localfile-tool-multiQCwrapper.cwl
+    in:
+      input:
+        valueFrom: $(
+            realign.log_createTarget.concat(
+              realign.log_realign).concat(
+              recalibrate_countCovariates.log_to_file_output).concat(
+              recalibrate_call.log_recalibrate).concat(
+              recalibrate_call.log_methylation_call).concat(
+              recalibrate_call.log_VCFpostprocessSNP).concat(
+              recalibrate_call.log_VCFpostprocessCpG)
+          )
+      outputPrefix: outPrefix
+    out:
+      - logFolder
+      - multiQCreport
+
+
 
 

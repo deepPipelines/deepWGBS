@@ -6,5 +6,5 @@ shift
 cat <(
       echo "track name=WGBS.$outputName type=bedDetail description=\"CG methylation level\" visibility=3"
     ) <(
-      grep -hvs $@
+      grep -hvs -e "^track" $@
     )
