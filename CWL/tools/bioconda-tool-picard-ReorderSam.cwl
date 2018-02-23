@@ -11,10 +11,11 @@ doc: |
     ![build_status](https://quay.io/repository/karl616/dockstore-tool-picard/status)
     A Docker container containing the Picard jar file. See the [Picard](http://broadinstitute.github.io/picard/) webpage for more information.
 
-dct:creator:
-  "@id": "https://orcid.org/0000-0001-6231-4417"
-  foaf:name: Karl Nordström
-  foaf:mbox: "mailto:karl.nordstroem@uni-saarland.de"
+s:author:
+  - class: s:Person
+    s:identifier: https://orcid.org/0000-0001-6231-4417
+    s:email: mailto:karl.nordstroem@uni-saarland.de
+    s:name: Karl Nordström
 
 
 requirements:
@@ -207,3 +208,10 @@ inputs:
     doc: |
        Reference sequence to reorder reads to match. A sequence dictionary corresponding to the reference fasta is required. Create one with CreateSequenceDictionary. Required. 
 
+$namespaces:
+  s: https://schema.org/
+  edam: http://edamontology.org/
+
+$schemas:
+  - https://schema.org/docs/schema_org_rdfa.html
+  - http://edamontology.org/EDAM_1.18.owl

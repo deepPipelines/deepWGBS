@@ -11,10 +11,11 @@ doc: |
     ![build_status](https://quay.io/repository/karl616/dockstore-tool-picard/status)
     A Docker container containing the Picard jar file. See the [Picard](http://broadinstitute.github.io/picard/) webpage for more information.
 
-dct:creator:
-  "@id": "https://orcid.org/0000-0001-6231-4417"
-  foaf:name: Karl Nordström
-  foaf:mbox: "mailto:karl.nordstroem@uni-saarland.de"
+s:author:
+  - class: s:Person
+    s:identifier: https://orcid.org/0000-0001-6231-4417
+    s:email: mailto:karl.nordstroem@uni-saarland.de
+    s:name: Karl Nordström
 
 
 requirements:
@@ -415,3 +416,10 @@ inputs:
     doc: |
        File of OPTION_NAME=value pairs. No positional parameters allowed. Unlike command-line options, unrecognized options are ignored. A single-valued option set in an options file may be overridden by a subsequent command-line option. A line starting with '#' is considered a comment. Required. 
 
+$namespaces:
+  s: https://schema.org/
+  edam: http://edamontology.org/
+
+$schemas:
+  - https://schema.org/docs/schema_org_rdfa.html
+  - http://edamontology.org/EDAM_1.18.owl
