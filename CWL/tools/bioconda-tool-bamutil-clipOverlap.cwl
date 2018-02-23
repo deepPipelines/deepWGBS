@@ -19,14 +19,14 @@ dct:creator:
 
 requirements:
   - class: InlineJavascriptRequirement
-  - class: DockerRequirement
-    dockerPull: "biodckrdev/bamutils:latest"
 
 hints:
   - class: ResourceRequirement
     coresMin: 1
     ramMin: 4092
     outdirMin: 512000
+  - class: DockerRequirement
+    dockerPull: "quay.io/biocontainers/bamutil:1.0.14--2"
 
 baseCommand: ["bam", "clipOverlapping"]
 

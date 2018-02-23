@@ -152,7 +152,7 @@ steps:
       - OUTPUT_output
 
   clipOverlap:
-    run: ../tools/bioconda-tool-bamutils-clipOverlap.cwl
+    run: ../tools/bioconda-tool-bamutil-clipOverlap.cwl
     in:
       in: mergeSam/OUTPUT_output
       out: 

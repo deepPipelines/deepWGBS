@@ -26,7 +26,7 @@ hints:
     ramMin: 4092
     outdirMin: 512000
   - class: DockerRequirement
-    dockerPull: "quay.io/karl616/dockstore-tool-bissnp:0.82.2"
+    dockerPull: "quay.io/biocontainers/bis-snp:0.82.2--0"
 
 baseCommand: ["-T", "BisulfiteGenotyper"]
 
