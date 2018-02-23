@@ -11,10 +11,11 @@ doc: |
     ![build_status](https://quay.io/repository/karl616/dockstore-tool-picard/status)
     A Docker container containing bamUtil. See the [bamUtil](https://genome.sph.umich.edu/wiki/BamUtil) webpage for more information.
 
-dct:creator:
-  "@id": "https://orcid.org/0000-0001-6231-4417"
-  foaf:name: Karl Nordström
-  foaf:mbox: "mailto:karl.nordstroem@uni-saarland.de"
+s:author:
+  - class: s:Person
+    s:identifier: https://orcid.org/0000-0001-6231-4417
+    s:email: mailto:karl.nordstroem@uni-saarland.de
+    s:name: Karl Nordström
 
 
 requirements:
@@ -127,3 +128,10 @@ inputs:
     doc: |
       Skip clipping reads to free of usable records when the poolSize is hit. The default action is to just clip the first read in a pair to free up the record.
 
+$namespaces:
+  s: https://schema.org/
+  edam: http://edamontology.org/
+
+$schemas:
+  - https://schema.org/docs/schema_org_rdfa.html
+  - http://edamontology.org/EDAM_1.18.owl

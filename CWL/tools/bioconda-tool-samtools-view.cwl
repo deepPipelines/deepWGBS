@@ -10,10 +10,11 @@ cwlVersion: "v1.0"
 doc: |
     A Docker container containing samtools index. See the [htslib](http://www.htslib.org/) webpage for more information.
 
-dct:creator:
-  "@id": "https://orcid.org/0000-0001-6231-4417"
-  foaf:name: Karl Nordström
-  foaf:mbox: "mailto:karl.nordstroem@uni-saarland.de"
+s:author:
+  - class: s:Person
+    s:identifier: https://orcid.org/0000-0001-6231-4417
+    s:email: mailto:karl.nordstroem@uni-saarland.de
+    s:name: Karl Nordström
 
 
 requirements:
@@ -296,3 +297,10 @@ doc: |
     -T, --reference FILE
                  Reference sequence FASTA FILE [null]
 
+$namespaces:
+  s: https://schema.org/
+  edam: http://edamontology.org/
+
+$schemas:
+  - https://schema.org/docs/schema_org_rdfa.html
+  - http://edamontology.org/EDAM_1.18.owl
