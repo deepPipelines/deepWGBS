@@ -1,0 +1,54 @@
+#!/usr/bin/env cwl-runner
+cwlVersion: v1.0
+class: CommandLineTool
+
+#requirements:
+#- class: InlineJavascriptRequirement
+
+inputs:
+  java_binary:
+    type: string
+    default: java
+    inputBinding:
+      position: 5
+      prefix: --java
+
+  fastQC_binary:
+    type: string
+    default: fastqc
+    inputBinding:
+      position: 0
+
+  fastqFiles:
+    type: File[]?
+    inputBinding:
+      position: 10
+
+  fastqFile:
+    type: File?
+    inputBinding:
+      position: 10
+
+  casava:
+    type: boolean?
+    inputBinding:
+      position: 5
+      prefix: --casava
+
+arguments:
+- valueFrom: "."
+  prefix: "--outdir"
+  position: 5
+- valueFrom: "--extract"
+  position: 5
+
+outputs:
+  zippedFile:
+    type: File[]
+    outputBinding:
+      glob: '*.zip'
+  report:
+    type: Directory
+    outputBinding:
+      glob: .
+
