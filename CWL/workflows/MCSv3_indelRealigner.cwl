@@ -37,12 +37,9 @@ outputs:
   realignedBam:
     type: File
     outputSource: realign/out_output
-  log_createTarget:
-    type: File?
-    outputSource: createTargets/log_to_file_output
-  log_realign:
-    type: File?
-    outputSource: realign/log_to_file_output
+  logFiles:
+    type: File[]
+    outputSource: mergeLogs/arrayOut
 
 steps:
 
@@ -85,6 +82,17 @@ steps:
     out:
       - out_output
       - log_to_file_output
+
+  mergeLogs:
+    run: ../tools/localfile-expressionTool-concatenateFileArray.cwl
+    in:
+      array1:
+        valueFrom: $( [ createTargets/log_to_file_output ] )
+      array2:
+        valueFrom: $( [ realign/log_to_file_output ] )
+    out:
+      - arrayOut
+
 $namespaces:
   s: https://schema.org/
   edam: http://edamontology.org/

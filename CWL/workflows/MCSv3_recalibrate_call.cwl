@@ -48,24 +48,9 @@ outputs:
   cpgbed:
     type: File
     outputSource: convertToBed/CpGbed
-  summary_VCFpostprocessSNP:
-    type: File?
-    outputSource: VCFpostprocessSNP/out_output
-  summary_VCFpostprocessCpG:
-    type: File?
-    outputSource: VCFpostprocessCpG/out_output
-  log_recalibrate:
-    type: File?
-    outputSource: recalibrate/log_to_file_output
-  log_methylation_call:
-    type: File?
-    outputSource: methylation_call/log_to_file_output
-  log_VCFpostprocessSNP:
-    type: File?
-    outputSource: VCFpostprocessSNP/log_to_file_output
-  log_VCFpostprocessCpG:
-    type: File?
-    outputSource: VCFpostprocessCpG/log_to_file_output
+  logFiles:
+    type: File[]
+    outputSource: mergeLogs/arrayOut
 
 steps:
 
@@ -188,6 +173,16 @@ steps:
         valueFrom: $( outPrefix + ".cpg.filtered.CG.bed" )
     out:
       - CpGbed
+
+  mergeLogs:
+    run: ../tools/localfile-expressionTool-concatenateFileArray.cwl
+    in:
+      array1:
+        valueFrom: $( [VCFpostprocessSNP/out_output, VCFpostprocessCpG/out_output, recalibrate/log_to_file_output] )
+      array2:
+        valueFrom: $( [methylation_call/log_to_file_output, VCFpostprocessSNP/log_to_file_output, VCFpostprocessCpG/log_to_file_output] )
+    out:
+      - arrayOut
 
 $namespaces:
   s: https://schema.org/

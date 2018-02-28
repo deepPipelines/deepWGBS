@@ -376,7 +376,7 @@ inputs:
       position: 5
       prefix: "REFERENCE_SEQUENCE="
       separate: false
-    type: File
+    type: File?
     doc: |
        Reference sequence file. Default value: null. 
 
