@@ -35,10 +35,20 @@ outputs:
     type: File
     streamable: true
     outputSource: mergeBam/OUTPUT_output
+    
+  picardDupMetrics:
+    type: File
+    outputSource: mergeBam/METRICS_FILE_output
+    
+  flagstat:
+    type: File
+    outputSource: flagstat/flagstat
+    
+  logFiles:
+    type: File[]
+    outputSource: align/trimLog
 
-  
-  
-
+    
 steps:
 
   align:
@@ -72,12 +82,27 @@ steps:
       - trimLog
 
   mergeBam:
-    run: ../tools/bioconda-tool-picard-MergeSamFiles.cwl
+    run: ../tools/bioconda-tool-picard-MarkDuplicates.cwl
     in:
       INPUT: align/bamAlignment
-      OUTPUT: outputName
+      OUTPUT: 
+        valueFrom: $( outputName + ".bam" )
+      METRICS_FILE:
+        valueFrom: $( outputName + ".markDuplicates.txt" )
+      CREATE_INDEX:
+        valueFrom: $( 1==1 )
     out:
-      - OUTPUT_output  
+      - OUTPUT_output
+      - METRICS_FILE_output
+      
+  flagstat:
+    run: ../tools/bioconda-tool-samtools-flagstat.cwl
+    in:
+      input: mergeBam/OUTPUT_output
+      outputName:
+        valueFrom: $( outputName + ".flagstat.txt" )
+    out:
+      - flagstat
 
 $namespaces:
   s: https://schema.org/
