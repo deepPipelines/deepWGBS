@@ -2,8 +2,8 @@
 
 class: CommandLineTool
 
-id: "Picard_MergeSamFiles"
-label: "Picard MergeSamFiles"
+id: "Picard_AddOrReplaceReadGroup"
+label: "Picard AddOrReplaceReadGroup"
 
 cwlVersion: "v1.0"
 
@@ -29,7 +29,7 @@ hints:
   - class: DockerRequirement
     dockerPull: "quay.io/biocontainers/picard:2.17.2--py36_0"
 
-baseCommand: ["picard", "MergeSamFiles"]
+baseCommand: ["picard", "AddOrReplaceReadGroup"]
 
 outputs:
 
@@ -165,82 +165,155 @@ inputs:
        File of OPTION_NAME=value pairs. No positional parameters allowed. Unlike command-line options, unrecognized options are ignored. A single-valued option set in an options file may be overridden by a subsequent command-line option. A line starting with '#' is considered a comment. Required. 
 
   INPUT:
+    type: File
+    streamable: true
     inputBinding:
       position: 5
-    type: 
-      type: array
-      items: File
-      inputBinding:
-        prefix: "INPUT="
-        separate: false
+      prefix: INPUT=
+      separate: false
     doc: |
-       SAM or BAM input file Default value: null. This option must be specified at least 1 times. 
+      Input file (BAM or SAM or a GA4GH url).  Required. 
 
   OUTPUT:
+    type: string
     inputBinding:
       position: 5
-      prefix: "OUTPUT="
+      prefix: OUTPUT=
       separate: false
-    type: string
     doc: |
-       SAM or BAM file to write merged result to Required. 
+      Output file (BAM or SAM).  Required. 
 
   SORT_ORDER:
-    inputBinding:
-      position: 5
-      prefix: "SORT_ORDER="
-      separate: false
     type:
-      - 'null'
+      - "null"
       - type: enum
         symbols: [unsorted, queryname, coordinate, duplicate, unknown]
-    doc: |
-       Sort order of output file Default value: coordinate. This option can be set to 'null' to clear the default value. Possible values: {unsorted, queryname, coordinate, duplicate, unknown} 
-
-  ASSUME_SORTED:
     inputBinding:
       position: 5
-      prefix: "ASSUME_SORTED=true"
+      prefix: SORT_ORDER=
       separate: false
-    type: boolean?
     doc: |
-       If true, assume that the input files are in the same sort order as the requested output sort order, even if their headers say otherwise. Default value: false. This option can be set to 'null' to clear the default value. Possible values: {true, false} 
+      Optional sort order to output in. If not supplied OUTPUT is in the same order as INPUT. 
+      Default value: null. Possible values: {unsorted, queryname, coordinate, duplicate,
+      unknown} 
 
-  MERGE_SEQUENCE_DICTIONARIES:
-    inputBinding:
-      position: 5
-      prefix: "MERGE_SEQUENCE_DICTIONARIES=true"
-      separate: false
-    type: boolean?
-    doc: |
-       Merge the sequence dictionaries Default value: false. This option can be set to 'null' to clear the default value. Possible values: {true, false} 
-
-  USE_THREADING:
-    inputBinding:
-      position: 5
-      prefix: "USE_THREADING=true"
-      separate: false
-    type: boolean?
-    doc: |
-       Option to create a background thread to encode, compress and write to disk the output file. The threaded version uses about 20% more CPU and decreases runtime by ~20% when writing out a compressed BAM file. Default value: false. This option can be set to 'null' to clear the default value. Possible values: {true, false} 
-
-  COMMENT:
-    inputBinding:
-      position: 5
-      prefix: "COMMENT="
-      separate: false
+  RGID:
     type: string?
-    doc: |
-       Comment(s) to include in the merged output file's header. Default value: null. This option may be specified 0 or more times. 
-
-  INTERVALS:
     inputBinding:
       position: 5
-      prefix: "INTERVALS="
+      prefix: RGID=
       separate: false
-    type: File?
     doc: |
-       An interval list file that contains the locations of the positions to merge. Assume bam are sorted and indexed. The resulting file will contain alignments that may overlap with genomic regions outside the requested region. Unmapped reads are discarded. Default value: null. 
+      Read-Group ID  Default value: 1. This option can be set to 'null' to clear the default
+      value. 
+
+  RGLB:
+    type: string
+    inputBinding:
+      position: 5
+      prefix: RGLB=
+      separate: false
+    doc: |
+      Read-Group library  Required. 
+
+  RGPL:
+    type: string
+    inputBinding:
+      position: 5
+      prefix: RGPL=
+      separate: false
+    doc: |
+      Read-Group platform (e.g. illumina, solid)  Required. 
+
+  RGPU:
+    type: string
+    inputBinding:
+      position: 5
+      prefix: RGPU=
+      separate: false
+    doc: |
+      Read-Group platform unit (eg. run barcode)  Required. 
+
+  RGSM:
+    type: string
+    inputBinding:
+      position: 5
+      prefix: RGSM=
+      separate: false
+    doc: |
+      Read-Group sample name  Required. 
+
+  RGCN:
+    type: string?
+    inputBinding:
+      position: 5
+      prefix: RGCN=
+      separate: false
+    doc: |
+      Read-Group sequencing center name  Default value: null. 
+
+  RGDS:
+    type: string?
+    inputBinding:
+      position: 5
+      prefix: RGDS=
+      separate: false
+    doc: |
+      Read-Group description  Default value: null. 
+
+  RGDT:
+    type: string?
+    inputBinding:
+      position: 5
+      prefix: RGDT=
+      separate: false
+    doc: |
+      Read-Group run date  Default value: null. 
+
+  RGKS:
+    type: string?
+    inputBinding:
+      position: 5
+      prefix: RGKS=
+      separate: false
+    doc: |
+      Read-Group key sequence  Default value: null. 
+
+  RGFO:
+    type: string?
+    inputBinding:
+      position: 5
+      prefix: RGFO=
+      separate: false
+    doc: |
+      Read-Group flow order  Default value: null. 
+
+  RGPI:
+    type: int?
+    inputBinding:
+      position: 5
+      prefix: RGPI=
+      separate: false
+    doc: |
+      Read-Group predicted insert size  Default value: null. 
+
+  RGPG:
+    type: string?
+    inputBinding:
+      position: 5
+      prefix: RGPG=
+      separate: false
+    doc: |
+      Read-Group program group  Default value: null. 
+
+  RGPM:
+    type: string?
+    inputBinding:
+      position: 5
+      prefix: RGPM=
+      separate: false
+    doc: |
+      Read-Group platform model  Default value: null. 
 
 $namespaces:
   s: https://schema.org/
@@ -249,102 +322,3 @@ $namespaces:
 $schemas:
   - https://schema.org/docs/schema_org_rdfa.html
   - http://edamontology.org/EDAM_1.18.owl
-ERROR: Option 'INPUT' is required.
-
-USAGE: AddOrReplaceReadGroups [options]
-
-Documentation: http://broadinstitute.github.io/picard/command-line-overview.html#AddOrReplaceReadGroups
-
-Assigns all the reads in a file to a single new read-group.
-
-This tool accepts INPUT BAM and SAM files or URLs from the Global Alliance for Genomics and Health (GA4GH)
-(http://ga4gh.org/#/documentation).
-
-Usage example:
-
-java -jar picard.jar AddOrReplaceReadGroups \
-I=input.bam \
-O=output.bam \
-RGID=4 \
-RGLB=lib1 \
-RGPL=illumina \
-RGPU=unit1 \
-RGSM=20
-
-
-Caveats
-
-The value of the tags must adhere (according to the SAM-spec (https://samtools.github.io/hts-specs/SAMv1.pdf)) with the
-regex '^[ -~]+$'</code> (one or more characters from the ASCII range 32 through 126). In particular <Space> is the only
-non-printing character allowed.
-
-The program enables only the wholesale assignment of all the reads in the INPUT to a single read-group. If your file
-already has reads assigned to multiple read-groups, the original RG value will be lost. 
-
-For more information about read-groups, see the GATK Dictionary entry.
-(https://www.broadinstitute.org/gatk/guide/article?id=6472)
-Version: 2.17.10-SNAPSHOT
-
-
-Options:
-
---help
--h                            Displays options specific to this tool.
-
---stdhelp
--H                            Displays options specific to this tool AND options common to all Picard command line
-                              tools.
-
---version                     Displays program version.
-
-INPUT=String
-I=String                      Input file (BAM or SAM or a GA4GH url).  Required. 
-
-OUTPUT=File
-O=File                        Output file (BAM or SAM).  Required. 
-
-SORT_ORDER=SortOrder
-SO=SortOrder                  Optional sort order to output in. If not supplied OUTPUT is in the same order as INPUT. 
-                              Default value: null. Possible values: {unsorted, queryname, coordinate, duplicate,
-                              unknown} 
-
-RGID=String
-ID=String                     Read-Group ID  Default value: 1. This option can be set to 'null' to clear the default
-                              value. 
-
-RGLB=String
-LB=String                     Read-Group library  Required. 
-
-RGPL=String
-PL=String                     Read-Group platform (e.g. illumina, solid)  Required. 
-
-RGPU=String
-PU=String                     Read-Group platform unit (eg. run barcode)  Required. 
-
-RGSM=String
-SM=String                     Read-Group sample name  Required. 
-
-RGCN=String
-CN=String                     Read-Group sequencing center name  Default value: null. 
-
-RGDS=String
-DS=String                     Read-Group description  Default value: null. 
-
-RGDT=Iso8601Date
-DT=Iso8601Date                Read-Group run date  Default value: null. 
-
-RGKS=String
-KS=String                     Read-Group key sequence  Default value: null. 
-
-RGFO=String
-FO=String                     Read-Group flow order  Default value: null. 
-
-RGPI=Integer
-PI=Integer                    Read-Group predicted insert size  Default value: null. 
-
-RGPG=String
-PG=String                     Read-Group program group  Default value: null. 
-
-RGPM=String
-PM=String                     Read-Group platform model  Default value: null. 
-
