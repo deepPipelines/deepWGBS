@@ -23,16 +23,20 @@ s:contributor:
     s:name: Dania Humaidan
 
 requirements:
-  - class: DockerRequirement
-    dockerPull: "quay.io/biocontainers/YAP_MCSv3:0.0.1"
+  - class: InitialWorkDirRequirement
+    listing:
+      - inputs.scriptFoldere
 
 hints:
   - class: ResourceRequirement
     coresMin: 1
     ramMin: 4092
     outdirMin: 512000
+  - class: DockerRequirement
+    dockerPull: "quay.io/biocontainers/bis-snp-utils:0.0.1--pl5.22.0_0"
 
-baseCommand: ["genMetaBam"]
+
+baseCommand: ["scripts/genMetaBam"]
 
 stdout: $( inputs.output_name + '.txt')
 
@@ -48,19 +52,21 @@ inputs:
       position: 1
       prefix: -i
 
-  PARAMETERFILE:
-    type: File
-    inputBinding:
-      position: 2
-      prefix: -p
-
-  output_name:
+ output_name:
     type: string
     inputBinding:
-      position: 3
+      position: 2
       prefix: -o
     doc: |
       Name of output file
+
+ scriptFolder:
+    type: Directory
+    default:
+      class: Directory
+      location: ../../scripts
+    doc: |
+      folder containing associated scripts
 
 $namespaces:
   s: https://schema.org/

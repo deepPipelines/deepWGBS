@@ -7,7 +7,6 @@ printHelp() {
  echo -e "" >&2
  echo -e " Mandatory:" >&2
  echo -e "  -i INPUTFILE\tInput BAM file" >&2
- echo -e "  -p FILE\tParameterfile" >&2
  echo -e "  -o STRING\tOutput name">&2
 }
 
@@ -16,13 +15,12 @@ do
  case "$opt" in
   h) printHelp; exit 1 ;;
   i) LOCALINPUTFILE="$OPTARG" ;;
-  p) PARAMETERFILE="$OPTARG" ;;
   o) output_name="$OPTARG";;
   *) printHelp; exit 1 ;;
  esac
 done
 
-if [[ -z "$LOCALINPUTFILE" ]] || [[ -z "$PARAMETERFILE" ]]||[[ -z "$output_name"]]
+if [[ -z "$LOCALINPUTFILE" ]] ||[[ -z "$output_name"]]
 then 
  echo "" >&2
  echo "ERROR: All arguments must be set" >&2
@@ -31,7 +29,6 @@ then
  exit 1
 fi
 
-source $PARAMETERFILE
 set -o pipefail
 
 rs='\n'
@@ -42,12 +39,8 @@ exitSum=0
 echo "LOGG ($name): `date` START" >&2
 
 printf "wgbs_analysis_run"
-awk -vFS='[ =]' '/^#ExcludeFromAnalysisFile/ {exit} /^export/ {print $2}' $PARAMETERFILE|while read s ; do printf "${rs}$s${fs}${!s}"; done
-exitSum=$(( $exitSum + $? ))
-
 printf "${rs}"
 
-printf "wgbs_parameter_file${fs}%s" "$PARAMETERFILE"
 printf "${rs}sample_id${fs}%s" "${WGBS_INTERNAL_ID}"
 printf "${rs}wgbs_out_postprocessed_bam_file${fs}%s" "$LOCALINPUTFILE"
 printf "${rs}conversion_rate${fs}%s" ""

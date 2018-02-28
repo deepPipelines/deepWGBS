@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 name=genMetaBed.sh
+scriptFolder=$(dirname $0)
 
 printHelp() {
  echo -e "Usage: `basename $0`" >&2
@@ -70,10 +71,10 @@ awk -vOFS='\t' '{print $1,$2,$2+2,$4+$6}' $output_name.paired.data.csv |bedtools
 exitSum=$(( $exitSum + $? ))
 
 printf "${rs}strandbias_meth${fs}%s"
-awk '$0!~/NA/ {print $3"\t"$5}' $output_name.paired.data.csv | Rscript /scripts/correlation.r $output_name.cpg.filtered.strandBias.meth.png
+awk '$0!~/NA/ {print $3"\t"$5}' $output_name.paired.data.csv | Rscript $scriptFolder/correlation.r $output_name.cpg.filtered.strandBias.meth.png
 exitSum=$(( $exitSum + $? ))
 printf "${rs}strandbias_cov${fs}%s"
-awk '$0!~/NA/ {print $4"\t"$6}' $output_name.paired.data.csv | Rscript /scripts/correlation.r $output_name.cpg.filtered.strandBias.cov.png
+awk '$0!~/NA/ {print $4"\t"$6}' $output_name.paired.data.csv | Rscript $scriptfolder/correlation.r $output_name.cpg.filtered.strandBias.cov.png
 exitSum=$(( $exitSum + $? ))
 
 printf "${rs}"
