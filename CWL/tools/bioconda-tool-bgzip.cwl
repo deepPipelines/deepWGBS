@@ -18,7 +18,7 @@ s:author:
 
 
 requirements:
-  - class: InlineJavaScriptRequirement
+  - class: InlineJavascriptRequirement
 
 hints:
   - class: ResourceRequirement

@@ -118,7 +118,7 @@ steps:
 
   realign:
     run: MCSv3_indelRealigner.cwl
-    scatter: [regions, regionPrefixes]
+    scatter: [region, outName]
     scatterMethod: dotproduct
     in:
       bamFile: removeUnmapped/bamFile
@@ -134,6 +134,8 @@ steps:
     run: ../tools/bioconda-tool-picard-MergeSamFiles.cwl
     in:
       INPUT: realign/realignedBam
+      OUTPUT:
+        valueFrom: $( outPrefix + ".mergedAlignments.bam" )
       VALIDATION_STRINGENCY:
         valueFrom: $( SILENT )
       MAX_RECORDS_IN_RAM:
@@ -177,7 +179,7 @@ steps:
       - bamFile
 
   clipOverlap_index:
-    run: ../tools/bioconda-samtools-index.cwl
+    run: ../tools/bioconda-tool-samtools-index.cwl
     in:
       input: clipOverlap_toBam/bamFile
     out:
@@ -205,7 +207,7 @@ steps:
 
   recalibrate_call:
     run: MCSv3_recalibrate_call.cwl
-    scatter: [ regions, regionPrefixes ]
+    scatter: [ region, outPrefix ]
     scatterMethod: dotproduct
     in:
       reference: reference
@@ -219,8 +221,6 @@ steps:
       - cpgvcf
       - calibratedBam
       - cpgbed
-      - summary_VCFpostprocessSNP
-      - summary_VCFpostprocessCpG
       - logFiles
 
   mergeBam:
@@ -246,7 +246,7 @@ steps:
     in:
       input: recalibrate_call/cpgvcf
       output_name:
-        valueFrom: $( outPrefix + ".filtered.cpg.vcf"
+        valueFrom: $( outPrefix + ".filtered.cpg.vcf" )
     out:
       - mergedVCF
     
@@ -256,6 +256,8 @@ steps:
       input: mergeVCFcpg/mergedVCF
       filetype:
         valueFrom: "vcf"
+      outputName:
+         valueFrom: $( outPrefix + ".filtered.cpg.vcf.gz" )
     out:
       - indexedFile
 
@@ -264,7 +266,7 @@ steps:
     in:
       input: recalibrate_call/snpvcf
       output_name:
-        valueFrom: $( outPrefix + ".filtered.snp.vcf"
+        valueFrom: $( outPrefix + ".filtered.snp.vcf" )
     out:
       - mergedVCF
 
@@ -274,6 +276,8 @@ steps:
       input: mergeVCFsnp/mergedVCF
       filetype:
         valueFrom: "vcf"
+      outputName:
+        valueFrom: $( outPrefix + ".filtered.snp.vcf.gz" )
     out:
       - indexedFile
 
@@ -293,6 +297,8 @@ steps:
       input: mergeBED/mergedBED
       filetype:
         valueFrom: "bed"
+      outputName:
+        valueFrom: $( outPrefix + ".filtered.CG.bed.gz" )
     out:
       - indexedFile
 
@@ -302,7 +308,7 @@ steps:
       input: mergeBED/mergedBED
       chromSizeFile: reference_lengths
       columnToUse:
-        valueFrom: 5
+        valueFrom: $( 5 )
       output_name:
         valueFrom: $( outPrefix + ".filtered.CG.ct_coverage.bw" )
     out:
@@ -314,7 +320,7 @@ steps:
       input: mergeBED/mergedBED
       chromSizeFile: reference_lengths
       columnToUse:
-        valueFrom: 4
+        valueFrom: $( 4 )
       output_name:
         valueFrom: $( outPrefix + ".filtered.CG.bw" )
     out:
@@ -324,7 +330,8 @@ steps:
     run: ../tools/localfile-tool-genMetaBam.cwl
     in:
       LOCALINPUTFILE: mergeBam/OUTPUT_output
-      output_name: $( outPrefix + ".recal.bam.qc" )
+      output_name: 
+        valueFrom: $( outPrefix + ".recal.bam.qc" )
     out:
       - metadata
 
@@ -333,7 +340,8 @@ steps:
     in:
       CPG_ISLANDS: cpg_islands
       bedFile: indexBED/indexedFile
-      output_name: $( outPrefix + ".filtered.CG.bed.qc.txt")
+      output_name: 
+        valueFrom: $( outPrefix + ".filtered.CG.bed.qc.txt")
     out:
       - metadata
       - methFile
@@ -342,9 +350,11 @@ steps:
   picardQC:
     run: ../tools/localfile-tool-genMetaPic.cwl
     in:
+      INPUT: inputfile_flagstats
       INPUTFILE_PICARDDUPMETRICS: inputfile_picardDupMetrics
       INPUTFILE_FLAGSTATS: inputfile_flagstats
-      output_name: $( outPrefix + ".alignment.qc.txt"
+      output_name: 
+        valueFrom: $( outPrefix + ".alignment.qc.txt"
     out:
       - metadata
 
@@ -354,7 +364,8 @@ steps:
       REFERENCE: reference
       SNP: indexVCFcpg/indexedFile
       CPG: indexVCFcpg/indexedFile
-      output_name: $( outPrefix + ".filtered.vcf.qc.txt" )
+      output_name: 
+        valueFrom: $( outPrefix + ".filtered.vcf.qc.txt" )
     out:
       - metadata
 
