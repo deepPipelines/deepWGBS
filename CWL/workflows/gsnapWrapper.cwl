@@ -9,7 +9,6 @@ requirements:
 inputs:
   readFiles: File[]
   outputName: string
-  sampleSheet: File
   gsnapDB: string
   gsnapDBdir: Directory
   nthreads: int
@@ -72,7 +71,7 @@ steps:
   sortAndRG:
     run: ../tools/bioconda-tool-picard-AddOrReplaceReadGroup.cwl
     in:
-      INPUT: alignmentSE/alignment
+      INPUT: alignment/alignment
       OUTPUT: outputName
       SORT_ORDER:
         valueFrom: "coordinate"
