@@ -52,7 +52,7 @@ inputs:
       position: 1
       prefix: -i
 
- output_name:
+  output_name:
     type: string
     inputBinding:
       position: 2
@@ -60,7 +60,7 @@ inputs:
     doc: |
       Name of output file
 
- scriptFolder:
+  scriptFolder:
     type: Directory
     default:
       class: Directory

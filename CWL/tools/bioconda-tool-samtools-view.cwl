@@ -2,8 +2,8 @@
 
 class: CommandLineTool
 
-id: "samtools_index"
-label: "samtools index"
+id: "samtools_view"
+label: "samtools view"
 
 cwlVersion: "v1.0"
 
@@ -202,10 +202,11 @@ inputs:
 
   stripTag:
     type: 
-      type: array
-      items: string
-      inputBinding:
-        prefix: -x
+      - "null"
+      - type: array
+        items: string
+        inputBinding:
+          prefix: -x
     inputBinding:
       position: 5
     doc: |
@@ -238,8 +239,9 @@ inputs:
 
   outputFormat:
     type:
-      type: enum
-      symbols: [SAM, BAM, CRAM]
+      - "null"
+      - type: enum
+        symbols: [SAM, BAM, CRAM]
     inputBinding:
       position: 5
       prefix: --output-fmt
