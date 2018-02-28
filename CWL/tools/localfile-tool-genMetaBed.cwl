@@ -37,7 +37,7 @@ hints:
     dockerPull: "quay.io/biocontainers/bis-snp-utils:0.0.1--pl5.22.0_0"
 
 
-baseCommand: ["bash", inputs.scriptFolder.basename +"/genMetaBed"]
+baseCommand: ["scripts/genMetaBed"]
 
 stdout: $( inputs.output_name + '.txt')
 
@@ -79,6 +79,9 @@ inputs:
 
   scriptFolder:
     type: Directory
+    default:
+      class: Directory
+      location: ../../scripts
     doc: |
       folder containing associated scripts
 

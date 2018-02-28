@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 name=genMetaVcf.sh
+scriptFolder=$(dirname $0)
 
 printHelp() {
  echo -e "Usage: `basename $0`" >&2
@@ -44,7 +45,7 @@ printf "${rs}wgbs_out_filtered_cytocines_vcf_file${fs}%s" "$CPG"
 printf "${rs}num_SNPs${fs}%s" `zcat $SNP | grep -v "^#" |cut -f 1,2|sort -u |wc -l`
 exitSum=$(( $exitSum + $? ))
 
-zcat $CPG | java -Xmx12G -jar /scripts/fastaUtils.jar cContext ${REFERENCE} - CG,1 CA,1 CC,1 CT,1 CH,1 CAG,1 CHH,1 CHG,1 GC,2 GCH,2 GCG,2 HCG,2 HCH,2 HCA,2 HCC,2 HCT,2 |awk -vOFS=$fs -vORS=$rs 'NR>1 {printf "%smean_meth_%s%s%s",ORS,tolower($1),OFS,$3+0}'
+zcat $CPG | java -Xmx12G -jar $scriptFolder/fastaUtils.jar cContext ${REFERENCE} - CG,1 CA,1 CC,1 CT,1 CH,1 CAG,1 CHH,1 CHG,1 GC,2 GCH,2 GCG,2 HCG,2 HCH,2 HCA,2 HCC,2 HCT,2 |awk -vOFS=$fs -vORS=$rs 'NR>1 {printf "%smean_meth_%s%s%s",ORS,tolower($1),OFS,$3+0}'
 exitSum=$(( $exitSum + $? ))
 printf "${rs}"
 
