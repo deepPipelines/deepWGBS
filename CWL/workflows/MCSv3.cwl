@@ -35,6 +35,9 @@ inputs:
     secondaryFiles:
       - ".idx"
 
+  cpg_islands:
+    type: File
+
   reference:
     type: File
     secondaryFiles:
@@ -57,9 +60,6 @@ inputs:
     type:
       type: array
       items: string
-
-  scriptFolder:
-    type: Directory
 
 outputs:
 
@@ -96,14 +96,8 @@ outputs:
     outputSource: indexBam/indexedBam
 
   logFiles:
-    type: Directory
-    outputSource: multiQCreport/logFolder
-
-  multiQC:
-    type: File
-    secondaryFiles:
-      - "^_data"
-    outputSource: multiQCreport/multiQCreport
+    type: File[]
+    outputSource: mergeLogs/arrayOut
 
 steps:
 
@@ -127,18 +121,17 @@ steps:
     scatter: [regions, regionPrefixes]
     scatterMethod: dotproduct
     in:
-      bamFile: removeUnmapped/outputs
+      bamFile: removeUnmapped/bamFile
       reference: reference
       known_indels: known_indels
       region: regions
       outName: regionPrefixes
     out:
       - realignedBam
-      - log_createTarget
-      - log_realign
+      - logFiles
 
   mergeSam:
-    run: ../tools/bioconda-tool-picard-_MergeSamFiles.cwl
+    run: ../tools/bioconda-tool-picard-MergeSamFiles.cwl
     in:
       INPUT: realign/realignedBam
       VALIDATION_STRINGENCY:
@@ -155,7 +148,7 @@ steps:
     in:
       in: mergeSam/OUTPUT_output
       out: 
-        valueFrom: $( outPrefix + ".clipOverlap.bam"
+        valueFrom: $( outPrefix + ".clipOverlap.bam" )
       poolsize:
         valueFrom: $( 2000000 )
     out:
@@ -165,7 +158,8 @@ steps:
     run: ../tools/localfile-tool-clipOverlapCorrection.cwl
     in:
       input: clipOverlap/out_output
-      output_name: $( outPrefix + ".clipOverlap.corrected.sam"
+      output_name: 
+        valueFrom: $( outPrefix + ".clipOverlap.corrected.sam" )
     out:
       - correctedSam
 
@@ -176,16 +170,16 @@ steps:
         valueFrom: $( true )
       useNoCompression:
         valueFrom: $( true )
-      input: clipOverlap_correction/output
+      input: clipOverlap_correction/correctedSam
       outputFileName:
         valueFrom: $( outPrefix + ".clipOverlap.clean.bam" )
     out:
-      - outputs
+      - bamFile
 
   clipOverlap_index:
     run: ../tools/bioconda-samtools-index.cwl
     in:
-      input: clipOverlap_toBam/outputs
+      input: clipOverlap_toBam/bamFile
     out:
       - indexedBam
   
@@ -227,10 +221,7 @@ steps:
       - cpgbed
       - summary_VCFpostprocessSNP
       - summary_VCFpostprocessCpG
-      - log_recalibrate
-      - log_methylation_call
-      - log_VCFpostprocessSNP
-      - log_VCFpostprocessCpG
+      - logFiles
 
   mergeBam:
     run: ../tools/bioconda-tool-picard-MergeSamFiles.cwl
@@ -256,7 +247,6 @@ steps:
       input: recalibrate_call/cpgvcf
       output_name:
         valueFrom: $( outPrefix + ".filtered.cpg.vcf"
-      scriptFolder: scriptFolder
     out:
       - mergedVCF
     
@@ -275,7 +265,6 @@ steps:
       input: recalibrate_call/snpvcf
       output_name:
         valueFrom: $( outPrefix + ".filtered.snp.vcf"
-      scriptFolder: scriptFolder
     out:
       - mergedVCF
 
@@ -295,7 +284,6 @@ steps:
       sample_name: outPrefix
       output_name:
         valueFrom: $( outPrefix + ".filtered.CG.bed" )
-      scriptFolder: scriptFolder
     out:
       - mergedBED
 
@@ -317,7 +305,6 @@ steps:
         valueFrom: 5
       output_name:
         valueFrom: $( outPrefix + ".filtered.CG.ct_coverage.bw" )
-      scriptFolder: scriptFolder
     out:
       - bigwigFile
 
@@ -330,50 +317,74 @@ steps:
         valueFrom: 4
       output_name:
         valueFrom: $( outPrefix + ".filtered.CG.bw" )
-      scriptFolder: scriptFolder
     out:
       - bigwigFile
 
   bamQC:
-    run:
+    run: ../tools/localfile-tool-genMetaBam.cwl
     in:
-
+      LOCALINPUTFILE: mergeBam/OUTPUT_output
+      output_name: $( outPrefix + ".recal.bam.qc" )
     out:
+      - metadata
 
   bedQC:
-    run:
+    run: ../tools/localfile-tool-genMetaBed.cwl
     in:
-
+      CPG_ISLANDS: cpg_islands
+      bedFile: indexBED/indexedFile
+      output_name: $( outPrefix + ".filtered.CG.bed.qc.txt")
     out:
+      - metadata
+      - methFile
+      - covFile
+
+  picardQC:
+    run: ../tools/localfile-tool-genMetaPic.cwl
+    in:
+      INPUTFILE_PICARDDUPMETRICS: inputfile_picardDupMetrics
+      INPUTFILE_FLAGSTATS: inputfile_flagstats
+      output_name: $( outPrefix + ".alignment.qc.txt"
+    out:
+      - metadata
 
   vcfQC:
-    run:
+    run: ../tools/localfile-tool-genMetaVcf.cwl
     in:
-
+      REFERENCE: reference
+      SNP: indexVCFcpg/indexedFile
+      CPG: indexVCFcpg/indexedFile
+      output_name: $( outPrefix + ".filtered.vcf.qc.txt" )
     out:
+      - metadata
 
-  
-
-  multiQCreport:
-    run: ../tools/localfile-tool-multiQCwrapper.cwl
+  mergeLogs:
+    run: ../tools/localfile-expressionTool-concatenateFileArray.cwl
     in:
-      input:
-        valueFrom: $(
-            realign.log_createTarget.concat(
-              realign.log_realign).concat(
-              recalibrate_countCovariates.log_to_file_output).concat(
-              recalibrate_call.log_recalibrate).concat(
-              recalibrate_call.log_methylation_call).concat(
-              recalibrate_call.log_VCFpostprocessSNP).concat(
-              recalibrate_call.log_VCFpostprocessCpG)
-          )
-      outputPrefix: outPrefix
+      array1:
+        valueFrom: |
+          ${
+            return bamQC.metadata.concat(
+              bedQC.metadata).concat(
+              bedQC.methFile).concat(
+              bedQC.covFile).concat(
+              picardQC.metadata).concat(
+              vcfQC.metadata);
+          }
+      array2:
+        valueFrom: |
+          ${
+            var arr=recalibrate_countCovariates.log_to_file_output;
+            for(var i=0; i<recalibrate_call.logFiles.length; i++){
+              arr=arr.concat(recalibrate_call.logFiles[i];
+            }
+            for(var i=0; i<realign.logFiles.length; i++){
+              arr=arr.concat(realign.logFiles[i];
+            }
+            return arr;
+          }
     out:
-      - logFolder
-      - multiQCreport
-
-
-
+      - arrayOut
 
 $namespaces:
   s: https://schema.org/

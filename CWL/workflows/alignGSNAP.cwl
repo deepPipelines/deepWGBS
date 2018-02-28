@@ -42,11 +42,11 @@ outputs:
     
   flagstat:
     type: File
-    outputSource: flagstat/flagstat
+    outputSource: genFlagstat/flagstat
     
   logFiles:
     type: File[]
-    outputSource: align/trimLog
+    outputSource: mergeLogs/arrayOut
 
     
 steps:
@@ -95,7 +95,7 @@ steps:
       - OUTPUT_output
       - METRICS_FILE_output
       
-  flagstat:
+  genFlagstat:
     run: ../tools/bioconda-tool-samtools-flagstat.cwl
     in:
       input: mergeBam/OUTPUT_output
@@ -103,6 +103,23 @@ steps:
         valueFrom: $( outputName + ".flagstat.txt" )
     out:
       - flagstat
+
+  mergeLogs:
+    run: ../tools/localfile-expressionTool-concatenateFileArray.cwl
+    in:
+      array1:
+        valueFrom: $( [ mergeBam/METRICS_FILE_output, genFlagstat/flagstat ])
+      array2: 
+        valueFrom: |
+          ${
+            var arr= align.trimLog[0];
+            for(var i=1; i<align.trimLog.length; i++){
+              arr=arr.concat(align.trimLog[i]);
+            }
+            return arr;
+          }
+    out:
+      - arrayOut
 
 $namespaces:
   s: https://schema.org/
