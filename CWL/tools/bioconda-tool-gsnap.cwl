@@ -54,7 +54,7 @@ inputs:
     streamable: true
     type: File?
     inputBinding:
-      position: 10
+      position: 15
 
   output_name:
     type: string
