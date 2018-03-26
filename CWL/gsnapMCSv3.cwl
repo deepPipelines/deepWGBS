@@ -39,6 +39,8 @@ inputs:
     type: File
     secondaryFiles:
       - ".idx"
+  cpg_islands:
+    type: File
   reference:
     type: File
     secondaryFiles:
@@ -51,13 +53,11 @@ outputs:
 
   multiQCreport:
     type: File
-    outputBinding:
-      outputSource: multiQC/multiQCreport
+    outputSource: multiQC/multiQCreport
   
   logFolder:
     type: Directory
-    outputBinding:
-      outputSource: multiQC/logFolder
+    outputSource: multiQC/logFolder
       
   cpgbedFile:
     type: File
@@ -121,9 +121,10 @@ steps:
     in:
       inputfile: align/mergedBam
       inputfile_picardDupMetrics: align/picardDupMetrics
-      inputfile_flagstats: align/flagstats
+      inputfile_flagstats: align/flagstat
       known_indels: known_indels
       known_snps: known_snps
+      cpg_islands: cpg_islands
       reference: reference
       reference_lengths: reference_lengths
       outPrefix: sampleName
@@ -138,14 +139,14 @@ steps:
       - snpVCFfile
         
   multiQC:
-  run: tools/localfile-tool-multiQCwrapper.cwl
-  in:
-    input:
-      valueFrom: $( align.logFiles.concat(callMeth.logFiles) )
-    outputPrefix: sampleName
-  out:
-    - logFolder
-    - multiQCreport
+    run: tools/localfile-tool-multiQCwrapper.cwl
+    in:
+      input:
+        valueFrom: $( align.logFiles.concat(callMeth.logFiles) )
+      outputPrefix: sampleName
+    out:
+      - logFolder
+      - multiQCreport
 
   
 $namespaces:
